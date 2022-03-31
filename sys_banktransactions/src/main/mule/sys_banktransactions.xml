@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="sys_banktransactions-httpListenerConfig">
+        <http:listener-connection host="localhost" port="8085" />
+    </http:listener-config>
+    <apikit:config name="sys_banktransactions-config" api="sys_banktransactions.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="505ab6d1-86a1-4122-a118-d0f1ed6021a9" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root123" database="banks" >
+			<db:connection-properties >
+				<db:connection-property key="useSSL" value="false" />
+			</db:connection-properties>
+		</db:my-sql-connection>
+	</db:config>
+	<flow name="sys_banktransactions-main">
+        <http:listener config-ref="sys_banktransactions-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="sys_banktransactions-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="sys_banktransactions-console">
+        <http:listener config-ref="sys_banktransactions-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="sys_banktransactions-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\checkBalance:application\json:sys_banktransactions-config">
+        <logger level="INFO" doc:name="checkBalance_Logger" doc:id="a46126ff-b75b-4e71-83b7-4be9994db53f" message='"this is first request checkBalanceLogger "'/>
+		<db:insert doc:name="checkBalance_mysql" doc:id="9b61464f-eb68-491c-bdb4-2094e196ef2d" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO checkBalance (accountNumber, amountToBeDeposit, pinCode)   
+VALUES (:accountNumber, :amountToBeDeposit, :pinCode)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Status: 200,
+  message: "Your total balance is 1234567890 as on 28-march-2022 is 12300"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="post:\createAccount:application\json:sys_banktransactions-config">
+        <logger level="INFO" doc:name="createAccount_Logger" doc:id="668934b7-7a70-44f8-a514-6a326bc3a751" message='"this is first logger createAccountLogger"'/>
+		<db:insert doc:name="createAccount_mysql" doc:id="6f047653-534d-4776-bd37-23a1d18fb19c" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO createAccount (bankName, customerName, pan, adhar, accountNumber, mailID, contactNumber, ifscCode)   
+VALUES (:bankName, :customerName, :pan, :adhar, :accountNumber, :mailID, :contactNumber, :ifscCode)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Status" : 200,
+  "message": "Account successfully created with accountNumber"
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="post:\deposit:application\json:sys_banktransactions-config">
+        <logger level="INFO" doc:name="deposit_Logger" doc:id="80eb93b0-4869-4697-b652-aa354b13cc22" message='"this is first deposit logger "'/>
+		<db:insert doc:name="deposit_Insert" doc:id="57a74974-0e3d-4bfe-9ccf-8d36063a0c6f" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO deposit (accountNumber, amountToBeDeposit)   
+VALUES ( :accountNumber, :amountToBeDeposit )]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ {  
+  "Status": 200,
+  "message" :"Amount 4444 is debited. Your total balance is 1245000"  
+  }
+
+
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\withDraw:application\json:sys_banktransactions-config">
+        <logger level="INFO" doc:name="withDraw_Logger" doc:id="c66fc8d9-2007-4be2-92e5-fe25c898a984" message='"this is first request withDraw logger"'/>
+		<db:insert doc:name="withDraw_Insert" doc:id="363985a9-d8a4-4c8f-a1d7-2b0f49ed0f9c" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO withDraw (accountNumber, amountToBeDeposit)   
+VALUES (:accountNumber, :amountToBeDeposit)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+  {  
+  "Status": 200,
+  "message" :"Amount 4444 is debited. Your total balance is 1245000"  
+  }]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

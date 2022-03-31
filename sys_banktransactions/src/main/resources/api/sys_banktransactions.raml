@@ -1,0 +1,59 @@
+#%RAML 1.0
+title: Sys_BankTransactions
+
+version: v1
+protocols: 
+- HTTP
+mediaType: 
+- application/json
+  
+/createAccount:
+  post:
+    body:
+      application/json:
+        type: !include Resource/DataType/input.raml
+        example: !include Resource/examples/createAccountRequest.json
+    responses:
+      200:
+        body:
+          application/json:
+           example: !include Resource/examples/createAccountResponses.json
+/deposit:
+  post:
+    body:
+      application/json:
+        type: !include Resource/DataType/inputdeposit.raml
+        example: !include Resource/examples/depositRequest.json
+    responses:
+      200:
+        body:
+          application/json:            
+            example: !include Resource/examples/depositResponses.json
+/withDraw:
+  post:
+    body:
+      application/json:
+        type: !include Resource/DataType/inputdeposit.raml
+        example: !include Resource/examples/depositRequest.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include Resource/examples/withdrawResponses.json
+/checkBalance:
+  post:
+    body:
+      application/json:
+        type: !include Resource/DataType/inputcheckbalance.raml
+        example: !include Resource/examples/checkBalanceRequest.json
+    responses:
+      200:
+        body:
+          application/json:            
+            example: !include Resource/examples/checkBalanceResponses.json
+              
+        
+        
+ 
+
+  

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="0cb076dd-4198-4c9a-b1e5-c4a547d70bd1" >
+		<http:request-connection host="localhost" port="8085" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="4a267120-a220-4fcc-9469-90d292a1aa3f" >
+		<http:request-connection host="localhost" port="8085" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="de1120b1-ed19-4ec5-8633-b5e9bd1b0f72" >
+		<http:request-connection host="localhost" port="8085" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration3" doc:name="HTTP Request configuration" doc:id="dd8b655b-f64f-4495-a79d-c0a9999e7dda" >
+		<http:request-connection host="localhost" port="8085" />
+	</http:request-config>
+	<sub-flow name="bankingTransactionSub_Flow" doc:id="674bb631-9332-43f0-86cf-ab66b9357248" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="14cac8f1-9507-41f4-8606-3be79522f26c" >
+			<route >
+				<http:request method="POST" doc:name="checkBalance_Request" doc:id="3fb7a6ef-aecc-4975-9a0b-2c019eb41ac3" config-ref="HTTP_Request_configuration" path="/api/checkBalance"/>
+				<ee:transform doc:name="Transform Message" doc:id="2acb58c4-eea8-4480-8f94-df4a3007880d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<http:request method="POST" doc:name="createAccount_Request" doc:id="15112447-2734-466a-964a-3b9c089a49a5" config-ref="HTTP_Request_configuration1" path="/api/createAccount"/>
+				<ee:transform doc:name="Transform Message" doc:id="313dabd9-bff8-4741-bd95-48062287db40" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<http:request method="POST" doc:name="deposit_Request" doc:id="fee6b9e2-c375-417a-974e-2511d2add64a" config-ref="HTTP_Request_configuration2" path="/api/deposit"/>
+				<ee:transform doc:name="Transform Message" doc:id="33307b58-c926-47c6-b818-03316489cb5f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<http:request method="POST" doc:name="withDraw_Request" doc:id="ef957761-83cb-46be-8a28-c98d1009bae7" config-ref="HTTP_Request_configuration3" path="/api/withDraw"/>
+				<ee:transform doc:name="Transform Message" doc:id="5356b6e1-1727-45d2-a6c3-20e58664818c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+	</sub-flow>
+</mule>

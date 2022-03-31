@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_674bb631_9332_43f0_86cf_ab66b9357248_Input_Payload = {
+  pinCode: String, 
+  amountToBeDeposit: String, 
+  accountNumber: String, 
+  _?: Any
+}
+
